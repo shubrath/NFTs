@@ -1,0 +1,397 @@
+.register-wrapper {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  position: relative;
+}
+
+.button-container {
+  display: flex;
+  gap: 25px; /* Add spacing between buttons */
+  justify-content: center; /* Center the buttons */
+  margin-bottom: 20px;
+  margin-top: 50px; /* Add some space from the top */
+}
+
+.Admin-button,
+.User-button,
+.view-nft-button,
+.create-nft-button {
+  font-size: 18px;
+  border: none;
+  background-color: #007bff; /* Button background color */
+  color: white; /* Button text color */
+  padding: 12px 24px; /* Make buttons a bit larger */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for beauty */
+}
+
+.Admin-button:hover,
+.User-button:hover,
+.view-nft-button:hover,
+.create-nft-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  transform: translateY(-3px); /* Lift effect on hover */
+}
+
+.Admin-button:active,
+.User-button:active,
+.view-nft-button:active,
+.create-nft-button:active {
+  transform: translateY(0); /* Reset lift on click */
+}
+.button-container {
+  display: flex;
+  gap: 25px;
+  justify-content: center;
+  margin-bottom: 20px;
+  margin-top: 50px;
+}
+
+/* Admin Button Styling */
+.Admin-button {
+  font-size: 18px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.Admin-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-3px);
+}
+
+/* User Button Styling */
+.User-button {
+  font-size: 18px;
+  border: none;
+  background-color: #2ccde5;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.User-button:hover {
+  background-color: #138496;
+  transform: translateY(-3px);
+}
+
+
+.create-nft-button {
+  font-size: 10px; /* Slightly larger font */
+  border-color: #000000;
+  background-color: #f6e0a1; /* Yellow */
+  color: #000000; /* Darker text for contrast */
+  /* padding: 14px 28px; */
+  font-weight: bold;
+  border: 1px solid #000000; /* Bold green border */
+
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  right: 10px;
+  top: 30px;
+}
+
+.dropdown button {
+  display: block;
+  background: none;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.dropdown button:hover {
+  background-color: #f0f0f0;
+}
+
+
+.create-nft-button:hover {
+  background-color: #e0a800;
+  transform: translateY(-3px);
+}
+
+/* View NFT Button Styling */
+.view-nft-button {
+  font-size: 10px;
+  font-weight: bold;
+  border: 1px solid #000000; /* Bold green border */
+  background-color: rgb(103, 194, 221); /* Transparent background */
+  color: #000000; /* Green text */
+  /* padding: 12px 24px; */
+  border-radius: 8px;
+  margin-left: 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.view-nft-button:hover {
+  background-color: #28a745;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+.admin-dashboard, .user-dashboard {
+  padding: 20px;
+  width: 100%;
+  height: 100vh;
+  background-color: #007bff; /* Dashboard background */
+  color: white;
+  text-align: center;
+  align-items: center;
+  overflow-y: auto;
+  
+}
+
+.nft-card {
+  width: 300px; /* Fixed width */
+  padding: 20px;
+  background-color: #28a745; /* Green background */
+  color: white; /* White text */
+  border-radius: 8px; /* Rounded corners */
+  position: relative; /* For absolute positioning of dots */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Box shadow for depth */
+  margin-top: 20px; /* Spacing between cards */
+  margin-left: 450px;
+  margin-bottom: 20px;
+}
+
+/* Dots Menu Styling */
+.dots-menu {
+  position: absolute; /* Positioned relative to the card */
+  top: 10px; /* Distance from the top */
+  right: 10px; /* Distance from the right */
+  font-size: 24px; /* Size of dots */
+  cursor: pointer; /* Pointer cursor for interactivity */
+}
+
+.form-field {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-field label {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 5px;
+  color: white;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+}
+
+.submit-button {
+  padding: 10px 20px;
+  background-color: #ffffff;
+  color: #28a745;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.submit-button:hover {
+  background-color: #e0e0e0;
+}
+
+.submit-button:active {
+  transform: scale(0.98);
+}
+
+
+.nft-card {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 20px;
+  position: relative; /* To position dropdown relative to card */
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative; /* For kebab menu positioning */
+}
+
+.kebabMenu {
+  cursor: pointer;
+  font-size: 20px;
+  position: absolute;
+  top: 10px;
+  right: 10px; /* Position kebab menu to the top right */
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 55px; /* Positioned right below the kebab menu */
+  right: 10px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  width: 100px;
+}
+
+.dropdownMenu div {
+  padding: 10px;
+  cursor: pointer;
+  color: #000000;
+}
+
+.dropdownMenu div:hover {
+  background-color: #f0f0f0;
+}
+
+
+/* Container for the NFT cards */
+.nft-card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  background-color: transparent;
+  /* justify-content: center; */
+  /* margin: 20px 0; */
+}
+
+/* Card styles */
+.nft-card {
+  
+  width: 500px;
+  background-color: #51a8f8 !important;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  /* padding: 20px; */
+  box-shadow: 0 2px 8px rgba(0, 10, 0, 0.1);
+  position: relative;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.kebabMenu {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 35px;
+  right: 15px;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  z-index: 100;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdownMenu div {
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dropdownMenu div:hover {
+  background-color: #f0f0f0;
+}
+
+/* Form inside the card */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+form label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+form input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+form button {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+form button:hover {
+  background-color: #45a049;
+}
+
+/* Style the card content */
+.nft-card p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.nft-card p strong {
+  font-weight: bold;
+}
+
+/* Ensure that the card container is responsive */
+@media screen and (max-width: 768px) {
+  .nft-card-container {
+      flex-direction: column;
+      align-items: center;
+  }
+}
+
+.backbutton{
+  width:120px;
+  bottom: 10px;
+  color: #000000;
+  border-radius: 5px;
+  border: 1px solid yellow;
+  background-color: #ccc;
+  margin-top: 10px;
+  align-self: center;
+  margin-left: 190px;
+}
