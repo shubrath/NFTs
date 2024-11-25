@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useCurrentWallet, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import "./register.css";
-import { Transaction } from "@mysten/sui/transactions";
+import { Transaction} from "@mysten/sui/transactions";
 import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { GetOwnedObjectsParams, PaginatedObjectsResponse, SuiObjectResponse } from '@mysten/sui/dist/cjs/client';
 // import { useRouter } from 'next/navigation';
 import CryptoJS from 'crypto-js';
 import axios from 'axios';
+// import { enableLogging } from '@mysten/sui-sdk';
+import { Ed25519Keypair } from '@mysten/sui.js';
+// import { JsonRpcProvider } from '@mysten/sui.js';
 
-const secretKey = 'your-secret-key';  // Replace with your own secret key for encryption
+// Create a provider
+// const provider = new JsonRpcProvider();
+// enableLogging();
 
 // Encrypt a string
 interface SuiParsedData {
@@ -51,10 +56,9 @@ const Register = () => {
   const [showNftForm, setShowNftForm] = useState(false);
   const [showNftCards, setShowNftCards] = useState(false);
   const [dropdownIndex, setDropdownIndex] = useState<number | null>(null); // Track which card's dropdown is open
-
+// const [objectId,setUserDataId] = useState()
   const [editIndex, setEditIndex] = useState<number | null>(null); // Index of the card being edited
   const [editFormData, setEditFormData] = useState<Record<string, any>>({});
-
 
 const handleEditClick = (index: number) => {
   setEditIndex(index); 
@@ -90,7 +94,8 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string
     name: string;       // Change to string
     owner: string;
     phone_number: string; // Change to string
-  }
+    secreat_key:string;
+    }
 
 
   const handleAdminClick = () => {
@@ -138,8 +143,11 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string
 };
 
 interface NftData {
-  nft_id: string; // or 'number' depending on your API response
-  // Add other fields if needed
+  nft_id: string;
+  approved:string;
+  object_id:string;
+  secreat_key:string;
+
 }
 
 
@@ -190,7 +198,7 @@ const handleAdminViewNftClick = async () => {
 
           // Convert ASCII arrays to strings for other fields
           if (Array.isArray(value) && value.every(v => typeof v === 'number')) {
-            const decryptedValue = decryptData(asciiArrayToString(value)); // Apply decryption
+            const decryptedValue = decryptData(asciiArrayToString(value),); // Apply decryption
             decodedContent[key] = decryptedValue; // Store the decrypted data
           } else {
             decodedContent[key] = value;
@@ -373,6 +381,98 @@ EditUser()
 
 
 
+
+
+const decryptData = (encryptedData: string, key: string): string => {
+  return CryptoJS.AES.decrypt(encryptedData, key).toString(CryptoJS.enc.Utf8);
+};
+
+
+
+
+
+
+const handleViewNftClick = async () => {
+  setShowNftCards(true);
+
+  try {
+    // Fetch all NFTs, including object_id and secret_key
+    const nftResponse = await axios.get<NftData[]>('http://127.0.0.1:8000/api/nfts/');
+    console.log("NFT Response:", nftResponse);
+
+    const newContentList: any[] = [];
+
+    // Iterate over each NFT row in the response
+    for (const nft of nftResponse.data) {
+      const { object_id, secreat_key, approved, nft_id } = nft; // Destructure properties
+      console.log("Processing NFT with Object ID:", object_id);
+
+      // Prepare options for fetching the object
+      const options = {
+        showType: true,
+        showContent: true,
+        showOwner: true,
+        showPreviousTransaction: true,
+      };
+      const params = {
+        options: options,
+        id: object_id,
+      };
+
+      // Fetch detailed object data using client.getObject
+      const response = await client.getObject(params);
+      console.log("Object Response:", response);
+
+      // Check if the response has valid data
+      if (!response?.data?.content?.fields) {
+        console.warn("No fields found for Object ID:", object_id);
+        continue;
+      }
+
+      const decodedContent: any = {};
+
+      // Iterate through each field in the NFT data's content fields
+      for (const [key, value] of Object.entries(response.data.content.fields)) {
+        console.log("Processing field:", key, "Value:", value);
+
+        try {
+          // Handle encrypted ASCII arrays
+          if (Array.isArray(value) && value.every((v) => typeof v === 'number')) {
+            const asciiString = asciiArrayToString(value);
+            console.log("Decrypted ASCII string:", asciiString);
+
+            const decryptedValue = decryptData(asciiString, secreat_key);
+            console.log("Decrypted value:", decryptedValue);
+
+            decodedContent[key] = decryptedValue;
+          } else if (value !== null && value !== undefined) {
+            decodedContent[key] = value;
+          } else {
+            console.warn("Skipping field due to invalid value:", key, value);
+          }
+        } catch (error) {
+          console.error("Error processing key:", key, "Value:", value, "Error:", error);
+        }
+      }
+
+      // Add the decoded content to the new content list
+      newContentList.push(decodedContent);
+    }
+
+    console.log("Final Decoded Content List:", newContentList);
+
+    // Set the decoded content to be rendered in cards
+    setContentList(newContentList);
+  } catch (error) {
+    console.error("Error fetching or decrypting NFTs:", error);
+  }
+};
+
+
+
+
+
+
 const handleEditSubmit = (e: React.FormEvent) => {
   e.preventDefault();
   if (editIndex !== null) {
@@ -384,58 +484,6 @@ const handleEditSubmit = (e: React.FormEvent) => {
   }
 };
 
-const decryptData = (encryptedData: string, key: string) => {
-  return CryptoJS.AES.decrypt(encryptedData, key).toString(CryptoJS.enc.Utf8);
-};
-
-const handleViewNftClick = () => {
-  const decryptData = (encryptedData: string, secretKey: string) => {
-    const bytes = CryptoJS.AES.decrypt(encryptedData, secretKey);
-    return bytes.toString(CryptoJS.enc.Utf8);
-  };
-  
-  const handleViewNftClick = async () => {
-    // Your existing code
-    const myAddress = account?.address.toString();
-    if (myAddress) {
-      try {
-        const response = await client.getOwnedObjects(params);
-  
-        const newContentList: any[] = [];
-        for (const item of response.data) {
-          const nftId = item.data?.content?.fields.id;
-          const nftSecretKey = await fetchSecretKeyFromDatabase(nftId);
-  
-          const decodedContent: any = {};
-          for (const [key, value] of Object.entries(item.data?.content?.fields || {})) {
-            if (Array.isArray(value) && value.every(v => typeof v === 'number')) {
-              const decryptedValue = decryptData(asciiArrayToString(value), nftSecretKey);
-              decodedContent[key] = decryptedValue;
-            } else {
-              decodedContent[key] = value;
-            }
-          }
-          newContentList.push(decodedContent);
-        }
-  
-        setContentList(newContentList);
-      } catch (error) {
-        console.log("Error fetching owned objects:", error);
-      }
-    }
-  };
-  
-  // Define a function to retrieve the secret key from your database
-  const fetchSecretKeyFromDatabase = async (nftId: string): Promise<string> => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/nfts/secret-key/${nftId}`);
-      return response.data.secret_key;
-    } catch (error) {
-      console.error('Error fetching secret key:', error);
-      throw error;
-    }
-  };
-  
 
   const handleBurnClick = (nftIndex:number) => {
     console.log(`Burn NFT ${nftIndex + 1}`);
@@ -450,10 +498,6 @@ const handleViewNftClick = () => {
 
 
 
-
-const generateSecretKey = () => {
-  return CryptoJS.lib.WordArray.random(16).toString(); // Generate a random 128-bit key
-};
 
 
 
@@ -498,40 +542,67 @@ const handleShare = async (id: any) => {
 const encryptData = (data: string, secretKey: string) => {
   return CryptoJS.AES.encrypt(data, secretKey).toString();
 };
-  
-  const addUser = async () => {
-    const tx = new Transaction();
-    const packageObjectId = '0xe79573aa07762cf37f2a65c1f7d84fe22095da4d28dcf28d27669ed2c85aae03';
-  
-    // Generate a unique secret key for this NFT
-    const nftSecretKey = generateSecretKey();
-  
-    // Encrypt the data with the unique secret key
-    const encryptedUsername = encryptData(username, nftSecretKey);
-    const encryptedEmail = encryptData(email, nftSecretKey);
-    const encryptedPhone = encryptData(phone, nftSecretKey);
-    const encryptedBio = encryptData(bio, nftSecretKey);
-  
-    tx.setGasBudget(10000000);
-    tx.moveCall({
-      target: `${packageObjectId}::userprofile::create_profile`,
-      arguments: [
-        tx.object('0x0c52efc722c5205501557f54aafb71070a22c1bef43cf24b1cd9616b19fa9986'),
-        tx.pure.string(encryptedUsername),
-        tx.pure.string(encryptedEmail),
-        tx.pure.string(encryptedPhone),
-        tx.pure.string(encryptedBio),
-      ],
-    });
-  
-    try {
-      const response = await signAndExecuteTransactionBlock(
-        {
-          transaction: tx as any,
-        },
-        {
-          onSuccess: ({ digest, effects }) => {
-            client.waitForTransaction({
+
+const generateSecretKey = () => {
+  return CryptoJS.lib.WordArray.random(16).toString(); 
+};
+
+
+const asciiArrayToString = (asciiArray:any) => {
+  return String.fromCharCode(...asciiArray);
+};
+
+
+
+const addUser = async () => {
+
+  const tx = new Transaction();
+  const packageObjectId = '0xe79573aa07762cf37f2a65c1f7d84fe22095da4d28dcf28d27669ed2c85aae03';
+
+  // Step 1: Generate a unique secret key for this NFT
+  const nftSecretKey = generateSecretKey();
+  console.log("this is the secreat_key",nftSecretKey)
+
+  // Step 2: Encrypt the data with the unique secret key
+  const encryptedUsername = encryptData(username, nftSecretKey);
+  const encryptedEmail = encryptData(email, nftSecretKey);
+  const encryptedPhone = encryptData(phone, nftSecretKey);
+  const encryptedBio = encryptData(bio, nftSecretKey);
+
+
+  tx.setSender('')
+  tx.setGasBudget(10000000);
+  tx.moveCall({
+    target: `${packageObjectId}::userprofile::create_profile`,
+    arguments: [
+      tx.object('0x0c52efc722c5205501557f54aafb71070a22c1bef43cf24b1cd9616b19fa9986'),
+      tx.pure.string(encryptedUsername),
+      tx.pure.string(encryptedEmail),
+      tx.pure.string(encryptedPhone),
+      tx.pure.string(encryptedBio),
+    ],
+  });
+
+
+  const options = {
+    showType: true,     
+    showContent: true,   
+    showOwner: true,       
+    showPreviousTransaction: true,
+};
+console.log(tx.getDigest(),"this is the data")
+
+  try {
+    tx.setSender('0xb52ee70ca7afce0b0916a437548cff532557d18e3b202c93bf4861522aaa4b68')
+    const response = signAndExecuteTransactionBlock(
+      {
+        transaction:tx 
+      },
+      
+      {
+        onSuccess: ({ digest, effects }) => {
+          client
+            .waitForTransaction({
               digest: digest,
               options: {
                 showEffects: true,
@@ -539,40 +610,58 @@ const encryptData = (data: string, secretKey: string) => {
                 showEvents: true,
               },
             })
-            .then(async (tx) => {
+            .then((tx) => {
               const objectId = tx.effects?.created?.[0]?.reference?.objectId;
               if (objectId) {
-                // Save the secret key to your database here
-                await saveSecretKeyToDatabase(objectId, nftSecretKey);
+
+
+                  
+            const requestBody = {
+              object_id: objectId,
+              nft_id: generateRandomObjectId(),
+              approved: "not approved",
+              secreat_key: nftSecretKey,
+              is_share: false,
+            };
+
+              try {
+                const apiResponse =  axios.post('http://127.0.0.1:8000/api/nfts/', requestBody, {
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                });
+
+                  console.log('NFT shared successfully:', apiResponse.data);
+                  alert('NFT created successfully');
+                } catch (apiError) {
+                  console.error('Error sharing NFT with API:', apiError.response?.data || apiError);
+                  alert('Error sharing NFT with API');
+                }
+
+
+
               }
             });
-          },
-          onError(error) {
-            console.log('error', error);
-          },
-        }
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  
-  // Define a function to save the secret key to your database
-  const saveSecretKeyToDatabase = async (nftId: string, secretKey: string) => {
-    try {
-      await axios.post('http://127.0.0.1:8000/api/nfts/', { nft_id: nftId, secret_key: secretKey });
-      console.log('Secret key saved successfully');
-    } catch (error) {
-      console.error('Error saving secret key:', error);
-    }
-  };
-  
-  
 
-
-const asciiArrayToString = (asciiArray:any) => {
-  return String.fromCharCode(...asciiArray);
+            console.log(objectId)
+        },
+        onError(error) {
+          console.log('error', error);
+        },
+      }
+    );
+  } catch (executionError) {
+    console.error("Error executing transaction:", executionError);
+  }
+  
 };
+
+
+
+
+
+  
+
 
 
 const [buttonText, setButtonText] = useState('Approve');
