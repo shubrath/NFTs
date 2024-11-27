@@ -31,7 +31,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [nftData, setNftData] = useState<NftFields | null>(null); // Use NftFields type
   const [contentList, setContentList] = useState<any[]>([]);
-  const [adminNftDetails, setAdminNftDetails] = useState<any[]>([]);  // or use a more specific type if possible
+  const [adminNftDetails, setAdminNftDetails] = useState<any[]>([]);
 
   const [walletAddress, setWalletAddress] = useState('');
   const [nftDetails, setNftDetails] = useState([]);
@@ -170,8 +170,8 @@ const handleAdminViewNftClick = async () => {
       console.log(is_share,"this is the is_share")
 
       // Filter out NFTs that are not shared
-      if (!is_share) {
-        console.log(`Skipping NFT ${nft_id} (not shared)`);
+      if (!is_share && approved == "not approved") {
+        console.log(`Skipping NFT ${{nft_id,approved}} (not shared)`);
         continue;
       }
 
@@ -333,20 +333,20 @@ const EditButton = (id: string, updatedData: Record<string, any>) => {
     const packageObjectId = '0xe79573aa07762cf37f2a65c1f7d84fe22095da4d28dcf28d27669ed2c85aae03';
 
 
-    const encryptedUsername = encryptData(updatedData['name']);
-    const encryptedEmail = encryptData(updatedData['emailId']);
-    const encryptedPhone = encryptData(updatedData['phone_number']);
-    const encryptedBio = encryptData(updatedData['bio']);
+    // const encryptedUsername = encryptData(updatedData['name']);
+    // const encryptedEmail    = encryptData(updatedData['emailId']);
+    // const encryptedPhone    = encryptData(updatedData['phone_number']);
+    // const encryptedBio      = encryptData(updatedData['bio']);
     tx.setGasBudget(10000000);
     tx.moveCall({
       target: `${packageObjectId}::userprofile::edit_nft`,
       arguments: [
         tx.object('0x0c52efc722c5205501557f54aafb71070a22c1bef43cf24b1cd9616b19fa9986'),
         tx.object(updatedData['id']),
-        tx.pure.string(encryptedUsername),
-        tx.pure.string(encryptedEmail),
-        tx.pure.string(encryptedPhone),
-        tx.pure.string(encryptedBio),
+        // tx.pure.string(encryptedUsername),
+        // tx.pure.string(encryptedEmail),
+        // tx.pure.string(encryptedPhone),
+        // tx.pure.string(encryptedBio),
       
       ],
     });
@@ -439,6 +439,7 @@ const decryptData = (encryptedData: string, key: string) => {
         const params = {
           options: options,
           id: object_id,
+
         };
   
         // Fetch detailed object data using client.getObject
@@ -467,11 +468,17 @@ const decryptData = (encryptedData: string, key: string) => {
               console.log("Decrypted value:", decryptedValue);
   
               decodedContent[key] = decryptedValue;
-            } else if (value !== null && value !== undefined) {
+            } 
+            
+            else if (value !== null && value !== undefined) {
               decodedContent[key] = value;
-            } else {
+            }
+            
+            else {
               console.warn("Skipping field due to invalid value:", key, value);
             }
+
+
           } catch (error) {
             console.error("Error processing key:", key, "Value:", value, "Error:", error);
           }
@@ -657,8 +664,8 @@ const handleApproveClick = async (index: string) => {
     console.log(index, "this is the index");
 
     // Define the API endpoint and payload
-    const apiUrl = `http://127.0.0.1:8000/api/nfts/${index}/`; // Assuming `index` corresponds to the NFT's ID
-    const payload = { approved: true }; // Updating the `approved` column to `true`
+    const apiUrl = `http://127.0.0.1:8000/api/myNfts/update-nft/${index}/`; // Assuming `index` corresponds to the NFT's ID
+    const payload = { approved: "approved" }; // Updating the `approved` column to `true`
 
     // Send the PATCH request
     const response = await axios.patch(apiUrl, payload, {
@@ -681,6 +688,7 @@ const handleApproveClick = async (index: string) => {
 
    return (
     <div className="register-wrapper">
+      
       {activeScreen === 'main' ? (
         <div className="button-container">
           <button onClick={handleAdminClick} className="Admin-button">Admin</button>
@@ -721,9 +729,9 @@ const handleApproveClick = async (index: string) => {
         {/* Approve Button - Pass the specific object_id */}
         <button
           className="view-nft-button"
-          onClick={() => handleApproveClick('0x2e9992e55977689eefeed47f38bd58de6e0466fbcd1f845af722e90c5108c1fc')} // Pass object_id here
+          onClick={() => handleApproveClick(nft.id)} // Pass object_id here
         >
-          {approvedCards.includes(index) ? 'Approved' : 'Approve'}
+          Approve
         </button>
       </div>
     ))
@@ -751,6 +759,8 @@ const handleApproveClick = async (index: string) => {
               <div className="dots-menu">⋮</div> {/* 3 Dots at top right */}
               <h2>Create NFT</h2>
               <div>
+
+
                 <div className="form-field">
                   <label>Name:</label>
                   <input
@@ -761,6 +771,8 @@ const handleApproveClick = async (index: string) => {
                   />
                 </div>
 
+
+
                 <div className="form-field">
                   <label>Email ID:</label>
                   <input
@@ -770,6 +782,7 @@ const handleApproveClick = async (index: string) => {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+
 
                 <div className="form-field">
                   <label>Phone:</label>
