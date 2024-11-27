@@ -51,7 +51,6 @@ const Register = () => {
   const [showNftForm, setShowNftForm] = useState(false);
   const [showNftCards, setShowNftCards] = useState(false);
   const [dropdownIndex, setDropdownIndex] = useState<number | null>(null); // Track which card's dropdown is open
-
   const [editIndex, setEditIndex] = useState<number | null>(null); // Index of the card being edited
   const [editFormData, setEditFormData] = useState<Record<string, any>>({});
 
@@ -71,8 +70,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string
 };
 
 
-  // Perform your view NFT logic here
-  // Hide the button after it's clicked
+
   const toggleDropdown = (index: number) => {
       setDropdownIndex(dropdownIndex === index ? null : index); // Toggle dropdown for the clicked card
   };
@@ -139,6 +137,13 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string
 
 interface NftData {
   nft_id: string; // or 'number' depending on your API response
+  is_share:boolean;
+  approved:string;
+  secreat_key:string;
+  object_id:string;
+
+
+  
   // Add other fields if needed
 }
 
@@ -146,71 +151,91 @@ interface NftData {
 function isObjectWithId(value: unknown): value is { id: string | number } {
   return typeof value === 'object' && value !== null && 'id' in value;
 }
+
+
 const handleAdminViewNftClick = async () => {
   try {
-    console.log("hello")
+    console.log("Fetching shared NFTs...");
+
     // Step 1: Get all NFTs
     setIsButtonVisible(false);
-    const response = await axios.get<NftData[]>('http://127.0.0.1:8000/api/nfts/');
-    const nftIds = response.data.map(nft => nft.nft_id); // Adjust based on your API response structure
-    
-    console.log('NFT IDs:', nftIds); // Log NFT IDs
+    const nftResponse = await axios.get<NftData[]>('http://127.0.0.1:8000/api/nfts/');
+    console.log("NFT Response:", nftResponse);
 
-    // Step 2: Fetch details for each NFT using getObject
-    const detailsPromises = nftIds.map(nftId =>  getObject(nftId));
-    const details = await Promise.all(detailsPromises);
-    
-    console.log('NFT Detailsmmmmmmmmm:', details); // Log fetched details
-
-    // Filter out any null values (in case of errors)
-    const filteredDetails = details.filter(detail => detail !== null);
-
-    // Decode content
     const newContentList: any[] = [];
-    filteredDetails.forEach((item, index) => {
-      if (index === 0) return; // Skip the first object
 
-      const content = item?.content?.fields; 
-      if (content) {
-        console.log("contents are :",content)
+    // Step 2: Iterate over each NFT and process it
+    for (const nft of nftResponse.data) {
+      const { object_id, secreat_key, approved, nft_id, is_share } = nft; 
+      console.log(is_share,"this is the is_share")
+
+      // Filter out NFTs that are not shared
+      if (!is_share) {
+        console.log(`Skipping NFT ${nft_id} (not shared)`);
+        continue;
+      }
+
+      console.log("Processing shared NFT with Object ID:", object_id);
+
+      // Prepare options for fetching the object
+      const options = {
+        showType: true,
+        showContent: true,
+        showOwner: true,
+        showPreviousTransaction: true,
+      };
+      const params = {
+        options: options,
+        id: object_id,
+      };
+
+      try {
+        // Fetch detailed object data using client.getObject
+        const response = await client.getObject(params);
+        console.log("Object Response:", response);
+
+        // Check if the response has valid data
+        if (!response?.data?.content?.fields) {
+          console.warn("No fields found for Object ID:", object_id);
+          continue;
+        }
+
         const decodedContent: any = {};
 
-        for (const [key, value] of Object.entries(content)) {
-          // Special handling for 'id'
-          if (key === 'id' && isObjectWithId(value)) {
-            decodedContent['id'] = value.id;  // Safely access `id`
-            continue;
-          }
+        // Decode each field in the content
+        for (const [key, value] of Object.entries(response.data.content.fields)) {
+          console.log("Processing field:", key, "Value:", value);
 
-          // Special handling for 'owner'
-          if (key === 'owner') {
-            decodedContent['owner'] = value;
-            continue;
-          }
+          // Handle encrypted ASCII arrays
+          if (Array.isArray(value) && value.every((v) => typeof v === 'number')) {
+            const asciiString = asciiArrayToString(value);
+            console.log("Decrypted ASCII string:", asciiString);
 
-          // Convert ASCII arrays to strings for other fields
-          if (Array.isArray(value) && value.every(v => typeof v === 'number')) {
-            const decryptedValue = decryptData(asciiArrayToString(value)); // Apply decryption
-            decodedContent[key] = decryptedValue; // Store the decrypted data
-          } else {
+            const decryptedValue = decryptData(asciiString, secreat_key);
+            console.log("Decrypted value:", decryptedValue);
+
+            decodedContent[key] = decryptedValue;
+          } else if (value !== null && value !== undefined) {
             decodedContent[key] = value;
+          } else {
+            console.warn("Skipping field due to invalid value:", key, value);
           }
         }
 
-       
-
+        // Add the decoded content to the list
         newContentList.push(decodedContent);
+      } catch (error) {
+        console.error("Error processing Object ID:", object_id, error);
       }
-    });
+    }
 
-    console.log("mijijxsdcjbsdjcbdsj",newContentList)
+    console.log("Final Decoded Content List (Shared NFTs):", newContentList);
 
-    // Set the decoded content into the new state
-    setAdminNftDetails(newContentList);  // Update the state with the new content list
-
-  } catch (err:any) {
-    console.error('Error fetching NFTs:', err);
-    setError(err);
+    // Step 3: Set the decoded content to the state for rendering
+    setAdminNftDetails(newContentList);
+  } catch (error) {
+    console.error("Error fetching or processing NFTs:", error);
+    setError(error);
   }
 };
 
@@ -388,54 +413,82 @@ const decryptData = (encryptedData: string, key: string) => {
   return CryptoJS.AES.decrypt(encryptedData, key).toString(CryptoJS.enc.Utf8);
 };
 
-const handleViewNftClick = () => {
-  const decryptData = (encryptedData: string, secretKey: string) => {
-    const bytes = CryptoJS.AES.decrypt(encryptedData, secretKey);
-    return bytes.toString(CryptoJS.enc.Utf8);
-  };
-  
+
   const handleViewNftClick = async () => {
-    // Your existing code
-    const myAddress = account?.address.toString();
-    if (myAddress) {
-      try {
-        const response = await client.getOwnedObjects(params);
+    setShowNftCards(true);
   
-        const newContentList: any[] = [];
-        for (const item of response.data) {
-          const nftId = item.data?.content?.fields.id;
-          const nftSecretKey = await fetchSecretKeyFromDatabase(nftId);
+    try {
+      // Fetch all NFTs, including object_id and secret_key
+      const nftResponse = await axios.get<NftData[]>('http://127.0.0.1:8000/api/nfts/');
+      console.log("NFT Response:", nftResponse);
   
-          const decodedContent: any = {};
-          for (const [key, value] of Object.entries(item.data?.content?.fields || {})) {
-            if (Array.isArray(value) && value.every(v => typeof v === 'number')) {
-              const decryptedValue = decryptData(asciiArrayToString(value), nftSecretKey);
-              decodedContent[key] = decryptedValue;
-            } else {
-              decodedContent[key] = value;
-            }
-          }
-          newContentList.push(decodedContent);
+      const newContentList: any[] = [];
+  
+      // Iterate over each NFT row in the response
+      for (const nft of nftResponse.data) {
+        const { object_id, secreat_key, approved, nft_id } = nft; // Destructure properties
+        console.log("Processing NFT with Object ID:", object_id);
+  
+        // Prepare options for fetching the object
+        const options = {
+          showType: true,
+          showContent: true,
+          showOwner: true,
+          showPreviousTransaction: true,
+        };
+        const params = {
+          options: options,
+          id: object_id,
+        };
+  
+        // Fetch detailed object data using client.getObject
+        const response = await client.getObject(params);
+        console.log("Object Response:", response);
+  
+        // Check if the response has valid data
+        if (!response?.data?.content?.fields) {
+          console.warn("No fields found for Object ID:", object_id);
+          continue;
         }
   
-        setContentList(newContentList);
-      } catch (error) {
-        console.log("Error fetching owned objects:", error);
+        const decodedContent: any = {};
+  
+        // Iterate through each field in the NFT data's content fields
+        for (const [key, value] of Object.entries(response.data.content.fields)) {
+          console.log("Processing field:", key, "Value:", value);
+  
+          try {
+            // Handle encrypted ASCII arrays
+            if (Array.isArray(value) && value.every((v) => typeof v === 'number')) {
+              const asciiString = asciiArrayToString(value);
+              console.log("Decrypted ASCII string:", asciiString);
+  
+              const decryptedValue = decryptData(asciiString, secreat_key);
+              console.log("Decrypted value:", decryptedValue);
+  
+              decodedContent[key] = decryptedValue;
+            } else if (value !== null && value !== undefined) {
+              decodedContent[key] = value;
+            } else {
+              console.warn("Skipping field due to invalid value:", key, value);
+            }
+          } catch (error) {
+            console.error("Error processing key:", key, "Value:", value, "Error:", error);
+          }
+        }
+  
+        // Add the decoded content to the new content list
+        newContentList.push(decodedContent);
       }
-    }
-  };
   
-  // Define a function to retrieve the secret key from your database
-  const fetchSecretKeyFromDatabase = async (nftId: string): Promise<string> => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/nfts/secret-key/${nftId}`);
-      return response.data.secret_key;
+      console.log("Final Decoded Content List:", newContentList);
+  
+      // Set the decoded content to be rendered in cards
+      setContentList(newContentList);
     } catch (error) {
-      console.error('Error fetching secret key:', error);
-      throw error;
+      console.error("Error fetching or decrypting NFTs:", error);
     }
   };
-  
 
   const handleBurnClick = (nftIndex:number) => {
     console.log(`Burn NFT ${nftIndex + 1}`);
@@ -595,13 +648,35 @@ interface NftCardProps {
 
 const [approvedNfts, setApprovedNfts] = useState({});
 
- const handleApproveClick = (index) => {
-    // Update the approval status for the specific NFT card
-    setApprovedNfts((prevApprovedNfts) => ({
-      ...prevApprovedNfts,
-      [index]: true, // Mark this NFT as approved
-    }));
-  };
+
+
+
+
+const handleApproveClick = async (index: string) => {
+  try {
+    console.log(index, "this is the index");
+
+    // Define the API endpoint and payload
+    const apiUrl = `http://127.0.0.1:8000/api/nfts/${index}/`; // Assuming `index` corresponds to the NFT's ID
+    const payload = { approved: true }; // Updating the `approved` column to `true`
+
+    // Send the PATCH request
+    const response = await axios.patch(apiUrl, payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Response from server:", response.data);
+
+    // Optionally, update the UI or state to reflect the change
+    alert("NFT successfully approved!");
+  } catch (error) {
+    console.error("Error approving NFT:", error);
+    alert("Failed to approve the NFT.");
+  }
+};
+
 
 
    return (
@@ -620,37 +695,49 @@ const [approvedNfts, setApprovedNfts] = useState({});
                   </button>
                 )}          
 
-          {/* Display the decoded newContentList */}
-          <div className="nft-list">
-            {adminNftDetails.length > 0 ? (
-              adminNftDetails.map((nft, index) => (
-                <div key={index} className="nft-card">
-                  <h3>NFT Details</h3>
-                  {/* Display additional fields dynamically */}
-                  {Object.entries(nft).map(([key, value]) => {
-                    if (key !== 'id' && key !== 'owner') {
-                      return (
-                        <p key={key}>
-                          <strong>{key}:</strong> {String(value)}
-                        </p>
-                      );
-                    }
-                    return null;
-                  })}
 
-                  {/* Approve Button - Change text when approved */}
-                  <button className='view-nft-button' onClick={() => handleApproveClick(index)}>
-                    {approvedCards.includes(index) ? 'Approved' : 'Approve'}
-                  </button>
-                </div>
 
-              ))
-            ) : (
-              <p>No NFTs available</p>
-            )}
-            <button className='backbutton' onClick={handleBackClick}>Back</button>
 
-          </div>
+
+
+{/* Display the decoded newContentList */}
+<div className="nft-list">
+  {adminNftDetails.length > 0 ? (
+    adminNftDetails.map((nft, index) => (
+      <div key={index} className="nft-card">
+        <h3>NFT Details</h3>
+        {/* Display additional fields dynamically */}
+        {Object.entries(nft).map(([key, value]) => {
+          if (key !== 'id' && key !== 'owner') {
+            return (
+              <p key={key}>
+                <strong>{key}:</strong> {String(value)}
+              </p>
+            );
+          }
+          return null;
+        })}
+
+        {/* Approve Button - Pass the specific object_id */}
+        <button
+          className="view-nft-button"
+          onClick={() => handleApproveClick('0x2e9992e55977689eefeed47f38bd58de6e0466fbcd1f845af722e90c5108c1fc')} // Pass object_id here
+        >
+          {approvedCards.includes(index) ? 'Approved' : 'Approve'}
+        </button>
+      </div>
+    ))
+  ) : (
+    <p>No NFTs available</p>
+  )}
+  <button className="backbutton" onClick={handleBackClick}>Back</button>
+</div>
+
+
+
+
+
+
         </div>
       ) :  (
         <div className="user-dashboard">
