@@ -1,24 +1,32 @@
 .register-wrapper {
-  width: 100%;
+  width: 430px;
+  
   height: 100vh;
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
   position: relative;
+  margin: auto;
+  background: #000;;
 }
 
+
 .button-container {
-  display: flex;
+  width: 90%;
+  /* display: flex; */
   gap: 25px; /* Add spacing between buttons */
   justify-content: center; /* Center the buttons */
   margin-bottom: 20px;
-  margin-top: 50px; /* Add some space from the top */
+  margin-top: 50%; /* Add some space from the top */
+  flex-direction: column;
 }
 
 .Admin-button,
-.User-button,
-.view-nft-button,
-.create-nft-button {
+
+.view-nft-button{
+
+
+  margin-top: 60%;
   font-size: 18px;
   border: none;
   background-color: #007bff; /* Button background color */
@@ -28,14 +36,56 @@
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for beauty */
+
+
 }
+.create-nft-button {
+
+
+  margin-top: 50%;
+  font-size: 18px;
+  border: none;
+  background-color: #007bff; /* Button background color */
+  color: white; /* Button text color */
+  padding: 12px 24px; /* Make buttons a bit larger */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for beauty */
+
+
+}
+
+
+.User-button{
+
+  width: 100%;
+  font-size: 18px;
+  border: none;
+  background-color: #3d3f42; /* Button background color */
+  color: white; /* Button text color */
+  padding: 12px 24px; /* Make buttons a bit larger */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for beauty */
+
+
+
+}
+
+
 
 .Admin-button:hover,
 .User-button:hover,
 .view-nft-button:hover,
 .create-nft-button:hover {
+
+
   background-color: #0056b3; /* Darker blue on hover */
   transform: translateY(-3px); /* Lift effect on hover */
+
+
 }
 
 .Admin-button:active,
@@ -45,15 +95,23 @@
   transform: translateY(0); /* Reset lift on click */
 }
 .button-container {
+
   display: flex;
   gap: 25px;
+  margin: 90px;
+  align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  margin-top: 50px;
+  margin-top: 1%;
+
+
 }
 
 /* Admin Button Styling */
 .Admin-button {
+
+
+  width: 100%;
   font-size: 18px;
   border: none;
   background-color: #007bff;
@@ -63,33 +121,45 @@
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+
 }
 
 .Admin-button:hover {
+
+
   background-color: #0056b3;
   transform: translateY(-3px);
+
+
 }
 
 /* User Button Styling */
 .User-button {
+  /* margin-top:60%; */
   font-size: 18px;
   border: none;
-  background-color: #2ccde5;
+  background-color: #03ceee;
   color: white;
   padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+
 }
 
 .User-button:hover {
+
   background-color: #138496;
   transform: translateY(-3px);
+
 }
 
 
 .create-nft-button {
+
   font-size: 10px; /* Slightly larger font */
   border-color: #000000;
   background-color: #f6e0a1; /* Yellow */
@@ -97,14 +167,15 @@
   /* padding: 14px 28px; */
   font-weight: bold;
   border: 1px solid #000000; /* Bold green border */
-
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+
 }
 
 .dropdown {
+
   position: absolute;
   background-color: white;
   border: 1px solid #ccc;
@@ -112,28 +183,69 @@
   padding: 8px;
   right: 10px;
   top: 30px;
+
+}
+.bg-body-tertiary{
+  background: #000;
+margin-bottom: 0px !important;
 }
 
+.connect_button{
+  background: #000;
+
+}
+
+.justify-content-end{
+  background: #000;
+}
+.icon-container {
+  position: absolute; /* Place the icon in a fixed position relative to the page */
+  top: 10px;         /* Adjust the distance from the top */
+  left: 20px;        /* Adjust the distance from the left */
+  z-index: 1000;     /* Ensure it stays above other content */
+}
+
+.back-icon {
+  font-size: 24px;   /* Adjust the size of the icon */
+  color: #ffffff;       /* Set the icon color */
+  cursor: pointer;   /* Change the cursor to pointer on hover */
+  transition: color 0.3s ease; /* Add a smooth hover effect */
+}
+
+.back-icon:hover {
+  color: #007bff;    /* Change color on hover */
+}
+
+
 .dropdown button {
+
   display: block;
   background: none;
   border: none;
   padding: 5px 10px;
   cursor: pointer;
+
 }
 
 .dropdown button:hover {
+
   background-color: #f0f0f0;
+
 }
 
 
 .create-nft-button:hover {
+
   background-color: #e0a800;
   transform: translateY(-3px);
+
+
 }
 
 /* View NFT Button Styling */
 .view-nft-button {
+
+
   font-size: 10px;
   font-weight: bold;
   border: 1px solid #000000; /* Bold green border */
@@ -144,49 +256,122 @@
   margin-left: 10px;
   margin-right: 10px;
   cursor: pointer;
+  margin-top: 50%;
   transition: background-color 0.3s ease, color 0.3s ease;
+
+
+}
+
+
+.view-nft-buttons {
+
+  width: 100%;
+  font-size: 10px;
+  font-weight: bold;
+  border: 1px solid #000000; /* Bold green border */
+  background-color: rgb(103, 194, 221); /* Transparent background */
+  color: #000000; /* Green text */
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-left: 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  margin-top: 50px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
 }
 
 .view-nft-button:hover {
+
+
   background-color: #28a745;
   color: white;
   transform: translateY(-3px);
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+
+
 }
 
 
-.admin-dashboard, .user-dashboard {
+.admin-dashboard{
+
   padding: 20px;
   width: 100%;
   height: 100vh;
-  background-color: #007bff; /* Dashboard background */
+  background-color: #000000; /* Dashboard background */
   color: white;
   text-align: center;
   align-items: center;
   overflow-y: auto;
+
+
   
 }
 
-.nft-card {
-  width: 300px; /* Fixed width */
+.user-dashboard {
+
+
   padding: 20px;
-  background-color: #28a745; /* Green background */
-  color: white; /* White text */
-  border-radius: 8px; /* Rounded corners */
-  position: relative; /* For absolute positioning of dots */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Box shadow for depth */
-  margin-top: 20px; /* Spacing between cards */
-  margin-left: 450px;
-  margin-bottom: 20px;
+  width: 100%;
+  height: 100vh;
+  background-color: #000000; /* Dashboard background */
+  color: white;
+  text-align: center;
+  align-items: center;
+  overflow-y: auto;
+
+
 }
 
-/* Dots Menu Styling */
+
+.approvalStatus {
+
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: bold;
+
+}
+.approvedMark {
+
+
+  color: green;
+
+
+}
+.notApprovedMark {
+
+
+  color: red;
+
+
+}
+
+
+.nft-card {
+
+  width: 100%; 
+  padding: 20px;
+  background-color: #28a745; 
+  color: white; 
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+  margin-top: 20px;
+  margin-bottom: 20px;
+
+
+}
+
 .dots-menu {
-  position: absolute; /* Positioned relative to the card */
-  top: 10px; /* Distance from the top */
-  right: 10px; /* Distance from the right */
-  font-size: 24px; /* Size of dots */
-  cursor: pointer; /* Pointer cursor for interactivity */
+
+
+  position: absolute; 
+  top: 10px;
+  right: 10px;
+  font-size: 24px; 
+  cursor: pointer;
+
+
 }
 
 .form-field {
@@ -286,11 +471,11 @@
 /* Card styles */
 .nft-card {
   
-  width: 500px;
+  width: 100%;
   background-color: #51a8f8 !important;
   border: 1px solid #ddd;
   border-radius: 8px;
-  /* padding: 20px; */
+  padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 10, 0, 0.1);
   position: relative;
 }
@@ -393,5 +578,5 @@ form button:hover {
   background-color: #ccc;
   margin-top: 10px;
   align-self: center;
-  margin-left: 190px;
+  /* margin-left: 190px; */
 }

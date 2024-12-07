@@ -20,7 +20,7 @@ const App = () => {
       <Routes>
         {/* <Route element={<RegNav Child={Register}/>} path="/register"></Route> */}
         <Route  path="/" element={<Register />}/>
-        <Route path="/login" element={<Login />} /> 
+        {/* <Route path="/login" element={<Login />} />  */}
       </Routes>
     </BrowserRouter>
 				</WalletProvider>

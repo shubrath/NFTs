@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^6.7.1",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@mysten/dapp-kit": "^0.14.11",
     "@mysten/sui": "^1.2.1",
     "@mysten/sui.js": "^0.54.1",

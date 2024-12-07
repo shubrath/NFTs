@@ -7,8 +7,11 @@ import { GetOwnedObjectsParams, PaginatedObjectsResponse, SuiObjectResponse } fr
 // import { useRouter } from 'next/navigation';
 import CryptoJS from 'crypto-js';
 import axios from 'axios';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+// import { useRouter } from 'next/navigation';
 const secretKey = 'your-secret-key';  // Replace with your own secret key for encryption
+
 
 // Encrypt a string
 interface SuiParsedData {
@@ -17,12 +20,57 @@ interface SuiParsedData {
   // Add other properties that may exist in SuiParsedData
 }
 
+
+interface NftFields {
+  approved: boolean;
+  bio: string;        // Change this to string since we're converting ASCII to string
+  emailId: string;    // Change to string
+  id: { id: string };
+  name: string;       // Change to string
+  owner: string;
+  phone_number: string; // Change to string
+}
+
+
+interface NftData {
+  nft_id: string; // or 'number' depending on your API response
+  is_share:boolean;
+  approved:string;
+  secreat_key:string;
+  object_id:string;
+
+
+  
+  // Add other fields if needed
+}
+
+
+
+interface NftCardProps {
+  nft: NFT;
+}
+
+ interface NFT {
+  id: number;
+  owner: string;
+  // Add other fields as necessary
+}
+
+
+
+
 const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMzZmYTZhNi0yY2RkLTRkNjktODU2Ny03ZTFjMjJkNTg4ZDQiLCJlbWFpbCI6InNodWJyYXRoa2dAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjM0M2Q1OTc0MWMwZTY0YmQ2YjE1Iiwic2NvcGVkS2V5U2VjcmV0IjoiNzc5YmI5MzAxNTc1ZTkxOGY3NmZjNmI3YWYyNWI5MWZlNjhmNDRlOWI0OTU4YWJlYzIxOWMzYTUxZjIzZGUyZCIsImlhdCI6MTcyMzk3ODUyMX0.at1zVZONfrfLFz1Cmp9UzHdK6SDeaQU8uRC5-r3Qp4E';
 const GATEWAY = "chocolate-selected-asp-545.mypinata.cloud";
 const objectId = '0xe6c70f0dfb34cc4017d156d0d194a90456540b8a864b3b0b5e7617518108584c'
+
+
 const Register = () => {
   const [isButtonVisible, setIsButtonVisible] = useState(true);
-
+  const [buttonText, setButtonText] = useState('Approve');
+  const [approvedCards, setApprovedCards] = useState([]); // Track approved cards
+  
+  
+  
   const [activeTab, setActiveTab] = useState('register'); // Tracks the current active tab
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
@@ -53,12 +101,18 @@ const Register = () => {
   const [dropdownIndex, setDropdownIndex] = useState<number | null>(null); // Track which card's dropdown is open
   const [editIndex, setEditIndex] = useState<number | null>(null); // Index of the card being edited
   const [editFormData, setEditFormData] = useState<Record<string, any>>({});
+  const [approvedNfts, setApprovedNfts] = useState({});
+
+
+
 
 
 const handleEditClick = (index: number) => {
   setEditIndex(index); 
   setEditFormData(contentList[index]);
 };
+
+
 
 
 const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -71,29 +125,33 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string
 
 
 
+
+
   const toggleDropdown = (index: number) => {
       setDropdownIndex(dropdownIndex === index ? null : index); // Toggle dropdown for the clicked card
   };
+
+
 
 
   const handleOptionClick = (option: string, index: number) => {
     console.log(`Option '${option}' clicked on card ${index + 1}`);
     // Handle different options here (e.g., share, edit, burn)
 };
-  interface NftFields {
-    approved: boolean;
-    bio: string;        // Change this to string since we're converting ASCII to string
-    emailId: string;    // Change to string
-    id: { id: string };
-    name: string;       // Change to string
-    owner: string;
-    phone_number: string; // Change to string
-  }
+
+
+
+
+ 
 
 
   const handleAdminClick = () => {
     setActiveScreen('admin');
   };
+
+
+
+
 
 
   const getObject = async (nftId:any) => {
@@ -126,31 +184,26 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string
             console.log('NFT Details:', response.data);
             return response.data; // Return the expected NFT details
         } else {
-            console.error(`No data found for NFT ID: ${nftId}`);
+            console.log(`No data found for NFT ID: ${nftId}`);
             return null; // Return null if no data is found
         }
     } catch (err) {
-        console.error(`Error fetching object for NFT ID ${nftId}:`, err);
+        console.log(`Error fetching object for NFT ID ${nftId}:`, err);
         return null; // Return null on error
     }
 };
 
-interface NftData {
-  nft_id: string; // or 'number' depending on your API response
-  is_share:boolean;
-  approved:string;
-  secreat_key:string;
-  object_id:string;
 
 
-  
-  // Add other fields if needed
-}
+
 
 
 function isObjectWithId(value: unknown): value is { id: string | number } {
   return typeof value === 'object' && value !== null && 'id' in value;
 }
+
+
+
 
 
 const handleAdminViewNftClick = async () => {
@@ -167,12 +220,18 @@ const handleAdminViewNftClick = async () => {
     // Step 2: Iterate over each NFT and process it
     for (const nft of nftResponse.data) {
       const { object_id, secreat_key, approved, nft_id, is_share } = nft; 
-      console.log(is_share,"this is the is_share")
+      console.log(is_share,approved,"this is the is_share")
 
       // Filter out NFTs that are not shared
-      if (!is_share && approved == "not approved") {
+      if (!is_share) {
         console.log(`Skipping NFT ${{nft_id,approved}} (not shared)`);
         continue;
+      }
+
+      if(approved){
+        console.log(`Skipping NFT ${{nft_id,approved}} (not shared)`);
+        continue;
+
       }
 
       console.log("Processing shared NFT with Object ID:", object_id);
@@ -191,7 +250,7 @@ const handleAdminViewNftClick = async () => {
 
       try {
         // Fetch detailed object data using client.getObject
-        const response = await client.getObject(params);
+        const response:any = await client.getObject(params);
         console.log("Object Response:", response);
 
         // Check if the response has valid data
@@ -225,7 +284,7 @@ const handleAdminViewNftClick = async () => {
         // Add the decoded content to the list
         newContentList.push(decodedContent);
       } catch (error) {
-        console.error("Error processing Object ID:", object_id, error);
+        console.log("Error processing Object ID:", object_id, error);
       }
     }
 
@@ -233,21 +292,45 @@ const handleAdminViewNftClick = async () => {
 
     // Step 3: Set the decoded content to the state for rendering
     setAdminNftDetails(newContentList);
-  } catch (error) {
-    console.error("Error fetching or processing NFTs:", error);
+  } catch (error:any) {
+    console.log("Error fetching or processing NFTs:", error);
     setError(error);
   }
 };
 
+
+
+
+
+
+const handleApproved = async (id: any): Promise<boolean> => {
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/api/nfts/${id.id}/`);
+    const data = await response.json();
+    return data.approved===true;
+  } catch (error) {
+    console.error("Error fetching approval status:", error);
+    return false; // Default to false on error
+  }
+};
+
+
+
+
   const handleUserClick = () => {
     setActiveScreen('user');
   };
+
+
+
 
   const handleBackClick = () => {
     setActiveScreen('main');
     setShowNftForm(false);
     setShowNftCards(false);
   };
+
+
 
 
 
@@ -302,19 +385,25 @@ const handleAdminViewNftClick = async () => {
 }, [connectionStatus]);
 
 
+
+
+
   const handleCreateNftClick = () => {
     setShowNftForm(true);
     setShowNftCards(false); 
 
-
-
- 
   }
+
+
 
 
   const close = async()=>{
     setEditIndex(NaN)
   }
+
+
+
+
   const handleEditButtonClick = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -325,76 +414,90 @@ const handleAdminViewNftClick = async () => {
 };
 
 
-const EditButton = (id: string, updatedData: Record<string, any>) => {
 
+
+const EditButton = (id: any, updatedData: Record<string, any>) => {
+
+
+  // console.log(id.id,"this is the id")
+
+  const fetchSecretKey = async (): Promise<string> => {
+    // Replace this with your API call to fetch the secret key
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/nfts/${id.id}/`);
+      const data = await response.json();
+      console.log(data.secreat_key,"this is the screate key")
+      return data.secreat_key; // Assuming the response contains the secret key
+    } catch (error) {
+      console.log("Error fetching secret key:", error);
+      throw new Error("Failed to fetch secret key");
+    }
+  };
  
   const EditUser = async () => {
+
+    const secretKey = await fetchSecretKey();
+    
+
+
     const tx = new Transaction();
     const packageObjectId = '0xe79573aa07762cf37f2a65c1f7d84fe22095da4d28dcf28d27669ed2c85aae03';
 
 
-    // const encryptedUsername = encryptData(updatedData['name']);
-    // const encryptedEmail    = encryptData(updatedData['emailId']);
-    // const encryptedPhone    = encryptData(updatedData['phone_number']);
-    // const encryptedBio      = encryptData(updatedData['bio']);
+    const encryptedUsername = encryptData(updatedData['name'],secretKey);
+    const encryptedEmail    = encryptData(updatedData['emailId'],secretKey);
+    const encryptedPhone    = encryptData(updatedData['phone_number'],secretKey);
+    const encryptedBio      = encryptData(updatedData['bio'],secretKey);
+
+    console.log(encryptedUsername,updatedData['id'].id)
     tx.setGasBudget(10000000);
     tx.moveCall({
       target: `${packageObjectId}::userprofile::edit_nft`,
       arguments: [
         tx.object('0x0c52efc722c5205501557f54aafb71070a22c1bef43cf24b1cd9616b19fa9986'),
-        tx.object(updatedData['id']),
-        // tx.pure.string(encryptedUsername),
-        // tx.pure.string(encryptedEmail),
-        // tx.pure.string(encryptedPhone),
-        // tx.pure.string(encryptedBio),
+        tx.object(updatedData['id'].id),
+        tx.pure.string(encryptedUsername),
+        tx.pure.string(encryptedEmail),
+        tx.pure.string(encryptedPhone),
+        tx.pure.string(encryptedBio),
       
       ],
     });
 
-    try {
+
+    // tx.moveCall({
+    //   target: `${packageObjectId}::userprofile::create_profile`,
+    //   arguments: [
+    //     tx.object('0x0c52efc722c5205501557f54aafb71070a22c1bef43cf24b1cd9616b19fa9986'),
+        
+    //     tx.pure.string(encryptedUsername),
+    //     tx.pure.string(encryptedEmail),
+    //     tx.pure.string(encryptedPhone),
+    //     tx.pure.string(encryptedBio),
+    //   ],
+    // });
+
+    
       const response = signAndExecuteTransactionBlock(
         {
           transaction: tx as any,
-        },
-        
-        {
-          onSuccess: ({ digest, effects }) => {
-            client
-              .waitForTransaction({
-                
-                digest: digest,
-               
-              })
-              .then((tx) => {
-                const objectId = tx.effects?.mutated?.[0]?.reference?.objectId;
-                if (objectId) {
-                    alert("NFT EDITED")
-                }
-              });
-    
-             
-          },
-          onError(error) {
-            console.log('error', error);
-            alert("ERROR")
-          },
         }
+        
+     
       );
     
     
      
       alert("NFT EDITED SUCCESSFULLY")
       setActiveTab('viewNFT'); 
-    } catch (error) {
-
-      alert("ERROR")
-
-    }
+   
 
 };
 EditUser()
   
 };
+
+
 
 
 
@@ -409,9 +512,16 @@ const handleEditSubmit = (e: React.FormEvent) => {
   }
 };
 
+
+
+
+
 const decryptData = (encryptedData: string, key: string) => {
   return CryptoJS.AES.decrypt(encryptedData, key).toString(CryptoJS.enc.Utf8);
 };
+
+
+
 
 
   const handleViewNftClick = async () => {
@@ -443,7 +553,7 @@ const decryptData = (encryptedData: string, key: string) => {
         };
   
         // Fetch detailed object data using client.getObject
-        const response = await client.getObject(params);
+        const response:any = await client.getObject(params);
         console.log("Object Response:", response);
   
         // Check if the response has valid data
@@ -472,6 +582,9 @@ const decryptData = (encryptedData: string, key: string) => {
             
             else if (value !== null && value !== undefined) {
               decodedContent[key] = value;
+              decodedContent['approved'] = approved;
+
+
             }
             
             else {
@@ -480,7 +593,7 @@ const decryptData = (encryptedData: string, key: string) => {
 
 
           } catch (error) {
-            console.error("Error processing key:", key, "Value:", value, "Error:", error);
+            console.log("Error processing key:", key, "Value:", value, "Error:", error);
           }
         }
   
@@ -493,13 +606,18 @@ const decryptData = (encryptedData: string, key: string) => {
       // Set the decoded content to be rendered in cards
       setContentList(newContentList);
     } catch (error) {
-      console.error("Error fetching or decrypting NFTs:", error);
+      console.log("Error fetching or decrypting NFTs:", error);
     }
   };
+
+
+
 
   const handleBurnClick = (nftIndex:number) => {
     console.log(`Burn NFT ${nftIndex + 1}`);
   };
+
+
 
 
   const generateRandomObjectId = () => {
@@ -520,18 +638,20 @@ const generateSecretKey = () => {
 
 
 const handleShare = async (id: any) => {
+  setDropdownIndex(null)
+  console.log(id.id,"this is the id ")
   const secretKey = generateSecretKey(); // Generate a unique key for this NFT
   const encryptedData = encryptData(id.toString(), secretKey); // Encrypt NFT data with the unique key
 
   const requestBody = {
-    object_id: generateRandomObjectId(),
-    nft_id: encryptedData, // Use the encrypted NFT ID
-    approved: "not approved",
-    secret_key: secretKey // Send the unique key for storage in the database
+
+    is_share:true
+    
+
   };
 
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/nfts/', requestBody, {
+    const response = await axios.patch(`http://127.0.0.1:8000/api/myNfts/update-nft/${id.id}/`, requestBody, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -541,10 +661,10 @@ const handleShare = async (id: any) => {
     alert('Share successful');
   } catch (error: any) {
     if (error?.response) {
-      console.error('Error response:', error?.response?.data);
+      console.log('Error response:', error?.response?.data);
       alert('Error sharing NFT');
     } else {
-      console.error('Error sharing NFT:', error);
+      console.log('Error sharing NFT:', error);
       alert(`Error sharing NFT: ${error}`);
     }
   }
@@ -552,20 +672,27 @@ const handleShare = async (id: any) => {
 
 
 
+function generateRandom10DigitNumber() {
+  return Math.floor(1000000000 + Math.random() * 9000000000);
+}
 
 
 
 const encryptData = (data: string, secretKey: string) => {
   return CryptoJS.AES.encrypt(data, secretKey).toString();
 };
+
+
   
   const addUser = async () => {
+    
     const tx = new Transaction();
     const packageObjectId = '0xe79573aa07762cf37f2a65c1f7d84fe22095da4d28dcf28d27669ed2c85aae03';
   
     // Generate a unique secret key for this NFT
     const nftSecretKey = generateSecretKey();
   
+    console.log("generated the id",nftSecretKey)
     // Encrypt the data with the unique secret key
     const encryptedUsername = encryptData(username, nftSecretKey);
     const encryptedEmail = encryptData(email, nftSecretKey);
@@ -577,6 +704,7 @@ const encryptData = (data: string, secretKey: string) => {
       target: `${packageObjectId}::userprofile::create_profile`,
       arguments: [
         tx.object('0x0c52efc722c5205501557f54aafb71070a22c1bef43cf24b1cd9616b19fa9986'),
+        
         tx.pure.string(encryptedUsername),
         tx.pure.string(encryptedEmail),
         tx.pure.string(encryptedPhone),
@@ -602,7 +730,7 @@ const encryptData = (data: string, secretKey: string) => {
             .then(async (tx) => {
               const objectId = tx.effects?.created?.[0]?.reference?.objectId;
               if (objectId) {
-                // Save the secret key to your database here
+          
                 await saveSecretKeyToDatabase(objectId, nftSecretKey);
               }
             });
@@ -612,48 +740,47 @@ const encryptData = (data: string, secretKey: string) => {
           },
         }
       );
-    } catch (error) {
+
+
+    } 
+    
+    
+    catch (error) {
       console.log(error);
     }
+
+
   };
   
   // Define a function to save the secret key to your database
   const saveSecretKeyToDatabase = async (nftId: string, secretKey: string) => {
     try {
-      await axios.post('http://127.0.0.1:8000/api/nfts/', { nft_id: nftId, secret_key: secretKey });
+      await axios.post('http://127.0.0.1:8000/api/nfts/', { object_id: nftId, nft_id:generateRandom10DigitNumber(),secreat_key: secretKey, approved:'false',is_share:false});
       console.log('Secret key saved successfully');
+      alert("user profile created successful !!!")
+      setUsername('')
+      setEmail('')
+      setPhone('')
+      setBio('')
+
+      
+      
+      
     } catch (error) {
-      console.error('Error saving secret key:', error);
+      console.log('Error saving secret key:', error);
     }
   };
   
   
 
 
-const asciiArrayToString = (asciiArray:any) => {
-  return String.fromCharCode(...asciiArray);
-};
+  const asciiArrayToString = (asciiArray:any) => {
+    return String.fromCharCode(...asciiArray);
+  };
 
 
-const [buttonText, setButtonText] = useState('Approve');
-const [approvedCards, setApprovedCards] = useState([]); // Track approved cards
 
-const handleClick = () => {
-  // Change the button text when clicked
-  setButtonText('Approved');
-};
 
-interface NftCardProps {
-  nft: NFT;
-}
-
- interface NFT {
-  id: number;
-  owner: string;
-  // Add other fields as necessary
-}
-
-const [approvedNfts, setApprovedNfts] = useState({});
 
 
 
@@ -665,7 +792,7 @@ const handleApproveClick = async (index: string) => {
 
     // Define the API endpoint and payload
     const apiUrl = `http://127.0.0.1:8000/api/myNfts/update-nft/${index}/`; // Assuming `index` corresponds to the NFT's ID
-    const payload = { approved: "approved" }; // Updating the `approved` column to `true`
+    const payload = { approved: true}; // Updating the `approved` column to `true`
 
     // Send the PATCH request
     const response = await axios.patch(apiUrl, payload, {
@@ -679,207 +806,189 @@ const handleApproveClick = async (index: string) => {
     // Optionally, update the UI or state to reflect the change
     alert("NFT successfully approved!");
   } catch (error) {
-    console.error("Error approving NFT:", error);
+    console.log("Error approving NFT:", error);
     alert("Failed to approve the NFT.");
   }
 };
 
 
-
-   return (
-    <div className="register-wrapper">
-      
-      {activeScreen === 'main' ? (
-        <div className="button-container">
-          <button onClick={handleAdminClick} className="Admin-button">Admin</button>
-          <button onClick={handleUserClick} className="User-button">User</button>
-        </div>
-      ) : activeScreen === 'admin' ? (
-        <div className="admin-dashboard">
-          <h2>Admin Dashboard</h2>
-          {isButtonVisible && (
-                  <button onClick={handleAdminViewNftClick} className="view-nft-button">
-                    View All NFT
-                  </button>
-                )}          
-
-
-
-
-
-
-{/* Display the decoded newContentList */}
-<div className="nft-list">
-  {adminNftDetails.length > 0 ? (
-    adminNftDetails.map((nft, index) => (
-      <div key={index} className="nft-card">
-        <h3>NFT Details</h3>
-        {/* Display additional fields dynamically */}
-        {Object.entries(nft).map(([key, value]) => {
-          if (key !== 'id' && key !== 'owner') {
-            return (
-              <p key={key}>
-                <strong>{key}:</strong> {String(value)}
-              </p>
-            );
-          }
-          return null;
-        })}
-
-        {/* Approve Button - Pass the specific object_id */}
-        <button
-          className="view-nft-button"
-          onClick={() => handleApproveClick(nft.id)} // Pass object_id here
-        >
-          Approve
+return (
+  <div className="register-wrapper">
+    {activeScreen === 'main' ? (
+      <div className="button-container">
+        <button onClick={handleAdminClick} className="Admin-button">
+          Admin
+        </button>
+        <button onClick={handleUserClick} className="User-button">
+          User
         </button>
       </div>
-    ))
-  ) : (
-    <p>No NFTs available</p>
-  )}
-  <button className="backbutton" onClick={handleBackClick}>Back</button>
-</div>
-
-
-
-
-
-
+    ) : activeScreen === 'admin' ? (
+      <div className="admin-dashboard">
+        <div className="icon-container">
+          <FontAwesomeIcon icon={faArrowLeft} className="back-icon" onClick={handleBackClick} />
         </div>
-      ) :  (
-        <div className="user-dashboard">
-          {!showNftForm && !showNftCards ? (
-            <>
-              <button className="create-nft-button" onClick={handleCreateNftClick}>Create NFT</button>
-              <button className="view-nft-button" onClick={handleViewNftClick}>View NFT</button>
-            </>
-          ) : showNftForm ? (
-            <div className="nft-card">
-              <div className="dots-menu">⋮</div> {/* 3 Dots at top right */}
-              <h2>Create NFT</h2>
-              <div>
-
-
-                <div className="form-field">
-                  <label>Name:</label>
-                  <input
-                    type="text"
-                    placeholder="Enter your name"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                </div>
-
-
-
-                <div className="form-field">
-                  <label>Email ID:</label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-
-
-                <div className="form-field">
-                  <label>Phone:</label>
-                  <input
-                    type="text"
-                    placeholder="Enter your phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-
-                <div className="form-field">
-                  <label>Bio:</label>
-                  <input
-                    type="text"
-                    placeholder="Enter your bio"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                  />
-                </div>
-
-                <button type="submit" onClick={addUser} className="submit-button">
-                  Submit
+        <h2>Admin Dashboard</h2>
+        {isButtonVisible && (
+          <button onClick={handleAdminViewNftClick} className="view-nft-button">
+            View All NFT
+          </button>
+        )}
+        <div className="nft-list">
+          {adminNftDetails.length > 0 ? (
+            adminNftDetails.map((nft, index) => (
+              <div key={index} className="nft-card">
+                <h3>NFT Details</h3>
+                {Object.entries(nft).map(([key, value]) => {
+                  if (key !== 'id' && key !== 'owner') {
+                    return (
+                      <p key={key}>
+                        <strong>{key}:</strong> {String(value)}
+                      </p>
+                    );
+                  }
+                  return null;
+                })}
+                <button
+                  className="view-nft-buttons"
+                  onClick={() => handleApproveClick(nft.id.id)}
+                >
+                  Approve
                 </button>
               </div>
-
-            
-              <button className='backbutton' onClick={handleBackClick}>Back</button>
-            </div>
-
-) : (
-          
-            <div>
-            {showNftCards && (
-                <div className="nft-card-container">
-                    {contentList.map((content, index) => (
-                        <div key={index} className="nft-card card">
-                            <div className="cardHeader">
-                                {/* <h3>Card {index + 1}</h3> */}
-                                <div className="kebabMenu" onClick={() => toggleDropdown(index)}>
-                                    &#x22EE; {/* 3 vertical dots */}
-                                </div>
-                            </div>
-                            
-                            {Object.entries(content).map(([field, value], fieldIndex) => (
-                                // Exclude 'id' and 'owner' from being displayed
-                                (field !== 'id' && field !== 'owner') && (
-                                    <p key={fieldIndex}>
-                                        <strong>{field}:</strong> {String(value)}
-                                    </p>
-                                )
-                            ))}
-        
-                            {/* Dropdown menu */}
-                            {dropdownIndex === index && (
-                                <div className="dropdownMenu">
-                                <div onClick={() => handleShare(content.id)}>Share</div> {/* Pass the content ID */}
-                                <div onClick={() => handleEditClick(index)}>Edit</div> {/* Pass id to handleEditClick */}
-                                    {/* <div onClick={() => handleOptionClick('Burn', index)}>Burn</div> */}
-                                </div>
-                            )}
-        
-                            {/* Edit form */}
-                            {editIndex === index && (
-                                <form onSubmit={handleEditButtonClick}>
-                                    {Object.entries(editFormData).map(([field, value], fieldIndex) => (
-                                        <div key={fieldIndex}>
-                                            <label>{field}</label>
-                                            <input
-                                                type="text"
-                                                value={value}
-                                                onChange={(e) => handleInputChange(e, field)}
-                                            />
-                                        </div>
-                                    ))}
-                                    <button type="submit">Save Changes</button>
-                                    <button onClick={close}>close</button>
-
-                                </form>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
-                    <button className='backbutton' onClick={handleBackClick}>Back</button>
-
-        </div>
-        
-
-
-
+            ))
+          ) : (
+            <p></p>
           )}
-        
+          {/* <button className="backbutton" onClick={handleBackClick}>
+            Back
+          </button> */}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    ) : (
+      <div className="user-dashboard">
+        <div className="icon-container">
+          <FontAwesomeIcon icon={faArrowLeft} className="back-icon" onClick={handleBackClick} />
+        </div>
+        {!showNftForm && !showNftCards ? (
+          <>
+
+            <h2>User Dashboard</h2>
+            <button className="create-nft-button" onClick={handleCreateNftClick}>
+              Create NFT
+            </button>
+            <button className="view-nft-button" onClick={handleViewNftClick}>
+              View NFT
+            </button>
+          </>
+        ) : showNftForm ? (
+          <div className="nft-card">
+            <div className="dots-menu">⋮</div>
+            <h2>Create NFT</h2>
+            <div>
+              <div className="form-field">
+                <label>Name:</label>
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label>Email ID:</label>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label>Phone:</label>
+                <input
+                  type="text"
+                  placeholder="Enter your phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label>Bio:</label>
+                <input
+                  type="text"
+                  placeholder="Enter your bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                />
+              </div>
+              <button type="submit" onClick={addUser} className="submit-button">
+                Submit
+              </button>
+            </div>
+            {/* <button className="backbutton" onClick={handleBackClick}>
+              Back
+            </button> */}
+          </div>
+        ) : (
+          <div>
+          {showNftCards && (
+            <div className="nft-card-container">
+              {contentList.map((content, index) => (
+                <div key={index} className="nft-card card">
+                  <div className="cardHeader">
+                    <div className="kebabMenu" onClick={() => toggleDropdown(index)}>
+                      &#x22EE;
+                    </div>
+                  </div>
+                  <div className="approvalStatus">
+                    {content.approved ? (
+                      <p className="success">✔️ Approved</p>
+                    ) : (
+                      <p className="error">❌ Not Approved</p>
+                    )}
+                  </div>
+                  {Object.entries(content).map(([field, value], fieldIndex) =>
+                    field !== "id" && field !== "owner" && field !== "approved" ? (
+                      <p key={fieldIndex}>
+                        <strong>{field}:</strong> {String(value)}
+                      </p>
+                    ) : null
+                  )}
+                  {dropdownIndex === index && (
+                    <div className="dropdownMenu">
+                      <div onClick={() => handleShare(content.id)}>Share</div>
+                      <div onClick={() => handleEditClick(index)}>Edit</div>
+                    </div>
+                  )}
+                  {editIndex === index && (
+                    <form onSubmit={handleEditButtonClick}>
+                      {Object.entries(editFormData).map(([field, value], fieldIndex) => (
+                        <div key={fieldIndex}>
+                          <label>{field}</label>
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => handleInputChange(e, field)}
+                          />
+                        </div>
+                      ))}
+                      <button type="submit">Save Changes</button>
+                      <button type="button" onClick={close}>
+                        Close
+                      </button>
+                    </form>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        )}
+      </div>
+    )}
+  </div>
+);
 };
 
 export default Register;
